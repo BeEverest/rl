@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gsm8k_rl"
+version = "0.1.0"
+description = "Agentic RL algorithms for GSM8K"
+authors = [
+    {name = "Anonymous", email = "anonymous@example.com"}
+]
+dependencies = [
+    "torch>=2.0.0",
+    "transformers",
+    "datasets",
+    "peft",
+    "trl"
+]
+readme = "README.md"
+requires-python = ">=3.9"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gsm*"]

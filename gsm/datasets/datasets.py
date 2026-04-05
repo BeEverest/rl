@@ -50,15 +50,6 @@ class GSM8KDataset(BaseDataset):
         answer = example["answer_zh"]
         ground_truth = example['answer_only']
         
-        # 提取最终答案
-        # if "####" in answer:
-        #     reasoning, final_answer = answer.split("####")
-        #     reasoning = reasoning.strip()
-        #     final_answer = final_answer.strip()
-        # else:
-        #     reasoning = answer
-        #     final_answer = ""
-        
         prompt = f"Question: {question}\n\nLet's solve this step by step:\n"
         completion = f"{answer}\n\n <answer>{ground_truth}</answer>"
         messages = [{"role": "user", "content": prompt}, {"role": "assistant", "content": completion}]
@@ -83,13 +74,6 @@ class GSM8KDataset(BaseDataset):
         question = example["question_zh"]
         answer = example["answer_zh"]
         final_answer = example['answer_only']
-
-        # 提取最终答案
-        # if "####" in answer:
-        #     _, final_answer = answer.split("####")
-        #     final_answer = final_answer.strip()
-        # else:
-        #     final_answer = answer.strip()
 
         prompt_content = f"Question: {question}\n\nLet's solve this step by step:"
 

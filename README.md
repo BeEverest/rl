@@ -1,15 +1,15 @@
 # Agentic RL GSM8K 框架
 
+主要内容：
+ 1、**以GSM8K_zh中文数据集、qwen3.5-2B为基座模型，进行lora微调、 grpo强化学习，构建了数据集处理、sft微调模型、grpo微调模型的pipeline
+ 2、**主要目的是学习grpo强化学习的流程，构建一个可复用的grpo强化学习框架pipeline
+ 3、**实验性研究为主，采取同一测试集评估：
+    1）相对base模型，sft模型准确率提升了35%，sft+gro模型准确率提升了58%
+    2）相对sft模型，sft+gro模型准确率提升了16%
+
 Agentic RL GSM8K 是一个基于最新深度强化学习架构构建的轻量级与模块化模型训练框架。此框架专为强化学习（特别是基于 GRPO 的 PPO 变体）和大型语言模型（LLM）的算术推理任务（如 **GSM8K**）设计，采用了纯粹的面向对象编程 (OOP) 范式，使其具有高扩展性和易用性。
 
 ---
-
-主要内容：
- 1、以GSM8K_zh中文数据集、qwen3.5-2B为基座模型，进行lora微调、 grpo强化学习，构建了数据集处理、sft微调模型、grpo微调模型的pipeline
- 2、主要目的是学习grpo强化学习的流程，构建一个可复用的grpo强化学习框架pipeline
- 3、实验性研究为主，采取同一测试集评估：
-    1）相对base模型，sft模型准确率提升了35%，sft+gro模型准确率提升了58%
-    2）相对sft模型，sft+gro模型准确率提升了16%
 
 
 ## 🏗️ 框架架构与实现原理
@@ -47,7 +47,7 @@ pip install -e .
 
 * **输入**：
   * **原数据**：位于 `data/GSM8K_zh/` 目录下（如 `train.json`, `test.json` 等）。
-  * **基础模型**：本地的大容量因果语言模型文件夹路径（如 `D:\Code\models\Qwen3.5-0.8B`）。
+  * **基础模型**：本地的大容量因果语言模型文件夹路径（如 `D:\Code\models\Qwen3.5-2B`）。
 * **输出**：
   * **模型参数**：训练完成后，默认只输出最轻量化的 **LoRA 适配器权重** (`adapter_model.bin/safetensors` 与 `tokenizer.json` 等) 保存至您的指定输出目录中。
   * **运行指标**：在对应输出目录自动生成 `runs/` 文件夹。用户可通过在命令行输入 `tensorboard --logdir outputs/(对应目录)/runs` 来查看 Loss、准确率和奖励攀升曲线。
@@ -62,8 +62,8 @@ pip install -e .
 用标注好的完整解题过程数据对模型进行第一轮前置“知识植入”。
 ```bash
 python scripts/run_sft.py \
-    --model "D:\Code\models\Qwen3.5-0.8B" \
-    --output "outputs/Qwen3.5-0.8B-sft-adapter" \
+    --model "D:\Code\models\Qwen3.5-2B" \
+    --output "outputs/Qwen3.5-2B-sft-adapter" \
     --max_samples 100
 ```
 
@@ -71,8 +71,8 @@ python scripts/run_sft.py \
 用奖励函数对上述监督或基座模型加以反馈奖惩、迭代出更好的推导模式（需带有明确 `<think>` 推理层级标签的启发）。
 ```bash
 python scripts/run_grpo.py \
-    --model "D:\Code\models\Qwen3.5-0.8B" \
-    --output "outputs/Qwen3.5-0.8B-grpo-adapter" \
+    --model "D:\Code\models\Qwen3.5-2B" \
+    --output "outputs/Qwen3.5-2B-grpo-adapter" \
     --max_samples 500
 ```
 
@@ -81,20 +81,20 @@ python scripts/run_grpo.py \
 ```bash
 # 测试纯净的基础模型
 python scripts/run_eval.py \
-    --model "D:\Code\models\Qwen3.5-0.8B"
+    --model "D:\Code\models\Qwen3.5-2B"
 
 # 测试挂载了刚才训练出的 LoRA 的混合模型
 python scripts/run_eval.py \
-    --model "D:\Code\models\Qwen3.5-0.8B" \
-    --adapter "outputs/Qwen3.5-0.8B-sft-adapter"
+    --model "D:\Code\models\Qwen3.5-2B" \
+    --adapter "outputs/Qwen3.5-2B-sft-adapter"
 ```
 
 ### 4. LoRA 模型导出与合并
 如果想要部署最终微调成果（使用 vLLM 等高性能推理引擎），必须将 LoRA weight 并入到原始浮点数主模型参数上，此脚本就是为了“打补丁合并”提供的。
 ```bash
 python scripts/merge_lora.py \
-    --base_model "D:\Code\models\Qwen3.5-0.8B" \
-    --lora_adapter "outputs\Qwen3.5-0.8B-sft-adapter" \
-    --output "outputs\Qwen3.5-0.8B-sft-merged-final"
+    --base_model "D:\Code\models\Qwen3.5-2B" \
+    --lora_adapter "outputs\Qwen3.5-2B-sft-adapter" \
+    --output "outputs\Qwen3.5-2B-sft-merged-final"
 ```
 （合并完成后，导出的 `output` 文件夹就是全量模型资源文件，不再依赖外挂模块）。
